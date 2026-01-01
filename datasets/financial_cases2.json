@@ -1,0 +1,11 @@
+[
+{
+  "id": "revenue_question",
+  "type": "financial",
+  "summary": "Revenue summary",
+  "root_cause": "configuration",
+  "action_taken": "rollback"
+}
+
+    
+]

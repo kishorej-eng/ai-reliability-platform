@@ -1,9 +1,11 @@
 [
   {
     "id": "email_summary",
+    "type": "email_summary",
     "prompt": "Summarize the following email in one sentence:\n\n{{text}}",
     "input": {
       "text": "Hi team, the production deployment failed due to a config issue. We are rolling back and will retry after fixing the environment variables."
     }
   }
+    
 ]

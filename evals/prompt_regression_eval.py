@@ -1,6 +1,7 @@
 import json
 from runners.mock_llm import run_llm
 from metrics.consistency import consistency_score
+from evals.parsers import parse_financial_response
 
 RUNS_PER_PROMPT = 5
 
@@ -20,13 +21,34 @@ def run_eval():
         outputs = []
 
         prompt = fill_prompt(item["prompt"], item["input"])
-        expected_facts = ["revenue", "year", "source"]
+        
+
+        if item["type"] == "email_summary":
+            expected_facts = ["deployment", "failed", "configuration"]
+
+        elif item["type"] == "financial":
+            expected_facts = ["revenue", "year", "source"]
 
         for _ in range(RUNS_PER_PROMPT):
             output = run_llm(prompt)
 
             # --- Hallucination risk evaluation ---
-            facts_found = 0
+            try:
+                parsed = json.loads(output)
+            except json.JSONDecodeError:
+                # This itself is a reliability signal
+                parsed = None
+
+            if parsed:
+                facts_found = sum([
+                    parsed.get("mentions_revenue", False),
+                    parsed.get("mentions_year", False),
+                    parsed.get("source_provided", False)
+                ])
+            else:
+                facts_found = 0
+
+            
             response_lower = output.lower()
 
             for fact in expected_facts:

@@ -1,0 +1,13 @@
+[
+  {
+    "id": "rev_q1_2024",
+    "type": "financial",
+    "ground_truth": {
+      "revenue": 1200000,
+      "year": 2024,
+      "source": "10-K filing"
+    }
+  }
+
+    
+]
