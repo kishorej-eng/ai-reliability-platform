@@ -2,6 +2,7 @@
   {
     "id": "rev_q1_2024",
     "type": "financial",
+    "prompt": "Return ONLY valid JSON with keys: revenue (number), year (number), source (string). No extra text.",
     "ground_truth": {
       "revenue": 1200000,
       "year": 2024,
