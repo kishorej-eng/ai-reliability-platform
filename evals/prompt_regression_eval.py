@@ -1,3 +1,4 @@
+import sys
 import json
 from runners.mock_llm import run_llm
 from metrics.consistency import consistency_score
@@ -17,6 +18,8 @@ def fill_prompt(template: str, inputs: dict) -> str:
 
 def run_eval():
     dataset = load_dataset("datasets/basic_prompts.json")
+    
+    overall_status = "PASS"
 
     for item in dataset:
         outputs = []
@@ -70,6 +73,9 @@ def run_eval():
             hallucination_risk=avg_hallucination_risk
         )
         
+        if status == "FAIL":
+            overall_status = "FAIL"
+
 
         print("=" * 40)
         print(f"Prompt ID: {item['id']}")
@@ -81,6 +87,14 @@ def run_eval():
         print(f"RELIABILITY GATE: {status}")
         for r in reasons:
             print(" -", r)
+            
+    if overall_status == "FAIL":
+        print("\n🚨 Evaluation failed")
+        sys.exit(1)
+    else:
+        print("\n✅ Evaluation passed")
+        sys.exit(0)
+
 
 if __name__ == "__main__":
     run_eval()
