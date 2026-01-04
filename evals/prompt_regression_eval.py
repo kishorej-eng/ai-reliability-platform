@@ -4,6 +4,8 @@ from runners.mock_llm import run_llm
 from metrics.consistency import consistency_score
 from evals.parsers import parse_financial_response
 from evals.gates import reliability_gate
+from evals.attribution import attribute_failure
+
 
 RUNS_PER_PROMPT = 5
 
@@ -24,6 +26,7 @@ def run_eval():
     for item in dataset:
         outputs = []
         hallucination_risks = []
+        parsed_ok = True
 
         prompt = fill_prompt(item["prompt"], item["input"])
         
@@ -36,13 +39,14 @@ def run_eval():
             output = run_llm(prompt)
 
             # --- Hallucination risk evaluation ---
-            
+            parsed_ok = True
                         
             if item["type"] == "financial":
                 parsed = parse_financial_response(output)
 
                 if not parsed:
                     hallucination_risk = 1.0
+                    parsed_ok = False
                 else:
                     gt = item["ground_truth"]
                     mismatches = sum([
@@ -72,21 +76,31 @@ def run_eval():
             consistency_score=score,
             hallucination_risk=avg_hallucination_risk
         )
-        
+
+        failure_reasons = []
+
         if status == "FAIL":
             overall_status = "FAIL"
+            failure_reasons = attribute_failure(
+                task_type=item["type"],
+                consistency_score=score,
+                hallucination_risk=avg_hallucination_risk,
+                parsed_ok=(item["type"] != "financial" or parsed is not None)
+        )
 
+       
 
         print("=" * 40)
         print(f"Prompt ID: {item['id']}")
-        print("Outputs:")
-        for o in outputs:
-            print("-", o)
-
         print(f"Consistency score: {score:.2f}")
+        print(f"Avg Hallucination risk: {avg_hallucination_risk:.2f}")
         print(f"RELIABILITY GATE: {status}")
-        for r in reasons:
-            print(" -", r)
+
+        if failure_reasons:
+            print("FAILURE ATTRIBUTION:")
+            for r in failure_reasons:
+                print(" -", r)
+
             
     if overall_status == "FAIL":
         print("\n🚨 Evaluation failed")
