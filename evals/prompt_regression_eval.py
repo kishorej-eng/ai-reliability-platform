@@ -5,6 +5,11 @@ from metrics.consistency import consistency_score
 from evals.parsers import parse_financial_response
 from evals.gates import reliability_gate
 from evals.attribution import attribute_failure
+from evals.drift import detect_drift
+from evals.history import load_baseline
+
+
+
 
 
 RUNS_PER_PROMPT = 5
@@ -20,13 +25,14 @@ def fill_prompt(template: str, inputs: dict) -> str:
 
 def run_eval():
     dataset = load_dataset("datasets/basic_prompts.json")
+    baseline = load_baseline("evals/history/baseline.json")
     
     overall_status = "PASS"
 
     for item in dataset:
         outputs = []
         hallucination_risks = []
-        parsed_ok = True
+        parsed_ok_overall = True
 
         prompt = fill_prompt(item["prompt"], item["input"])
         
@@ -46,7 +52,7 @@ def run_eval():
 
                 if not parsed:
                     hallucination_risk = 1.0
-                    parsed_ok = False
+                    parsed_ok_overall = False
                 else:
                     gt = item["ground_truth"]
                     mismatches = sum([
@@ -77,6 +83,17 @@ def run_eval():
             hallucination_risk=avg_hallucination_risk
         )
 
+        drift_status, drift_reasons = detect_drift(
+            prompt_id=item["id"],
+            current_consistency=score,
+            current_hallucination=avg_hallucination_risk,
+            baseline=baseline
+        )
+        
+        if drift_status == "DRIFT_DETECTED":
+            overall_status = "FAIL"
+
+
         failure_reasons = []
 
         if status == "FAIL":
@@ -86,15 +103,18 @@ def run_eval():
                 consistency_score=score,
                 hallucination_risk=avg_hallucination_risk,
                 parsed_ok=(item["type"] != "financial" or parsed is not None)
+                
         )
 
-       
+        parsed_ok=parsed_ok_overall
+
 
         print("=" * 40)
         print(f"Prompt ID: {item['id']}")
         print(f"Consistency score: {score:.2f}")
         print(f"Avg Hallucination risk: {avg_hallucination_risk:.2f}")
         print(f"RELIABILITY GATE: {status}")
+        print(f"DETECT_DRIFT: {drift_status}")
 
         if failure_reasons:
             print("FAILURE ATTRIBUTION:")
