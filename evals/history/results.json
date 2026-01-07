@@ -1,0 +1,29 @@
+{
+  "runs": [
+    {
+      "prompt_id": "email_summary",
+      "task_type": "email_summary",
+      "consistency_score": 0.33,
+      "avg_hallucination_risk": 0.13,
+      "reliability_status": "FAIL",
+      "failure_reasons": [
+        "INCONSISTENT_OUTPUTS"
+      ],
+      "drift_status": "UNKNOWN",
+      "timestamp": "2026-01-07T00:12:48.598134"
+    },
+    {
+      "prompt_id": "email_summary",
+      "task_type": "email_summary",
+      "consistency_score": 0.5,
+      "avg_hallucination_risk": 0.53,
+      "reliability_status": "FAIL",
+      "failure_reasons": [
+        "INCONSISTENT_OUTPUTS",
+        "MISSING_KEY_FACTS"
+      ],
+      "drift_status": "UNKNOWN",
+      "timestamp": "2026-01-07T00:15:44.480474"
+    }
+  ]
+}

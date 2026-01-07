@@ -1,0 +1,7 @@
+{
+  "email_summary": {
+    "consistency_score": 0.6,
+    "hallucination_risk": 0.2
+  }
+}
+
